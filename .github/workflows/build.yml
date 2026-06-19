@@ -16,7 +16,7 @@ jobs:
     - name: Set up Python 3.10
       uses: actions/setup-python@v5
       with:
-        python-level: '3.10'
+        python-version: '3.10'
 
     - name: Install System Dependencies
       run: |
@@ -25,11 +25,20 @@ jobs:
         pip3 install --upgrade pip
         pip3 install buildozer cython virtualenv
 
+    # --- NEW STEP TO AUTO-ACCEPT LICENSES ---
+    - name: Auto-Accept Android SDK Licenses
+      run: |
+        mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+        echo -e "244d2d25b6ac2816d4c629f74b127bc14e0547a0\n28e007fb4c10cb34a8e04de9ec0300c74bc54050" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        echo -e "84831b9409646a918e30573bab4c9c91346d8abd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+        
     - name: Generate Android APK with Buildozer
       run: |
-        buildozer android debug
+        # Feeding yes to buildozer helps clear any lingering interactive prompts
+        yes | buildozer android debug
       env:
         REQS: python3,pygame
+        GRADLE_OPTS: "-Dorg.gradle.welcome=false"
 
     - name: Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
