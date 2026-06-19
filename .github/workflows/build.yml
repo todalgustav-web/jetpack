@@ -27,6 +27,45 @@ jobs:
 
     - name: Auto-Accept Android SDK Licenses
       run: |
+        # Accept licenses natively on the runner's pre-installed SDK
+        yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses
+        
+    - name: Generate Android APK with Buildozer
+      run: |
+        # Link Buildozer directly to GitHub's built-in working Android SDK path
+        buildozer android debug
+      env:
+        REQS: python3,pygame
+        GRADLE_OPTS: "-Dorg.gradle.welcome=false"
+        BUILDOZER_ANDROID_SDK_PATH: "/usr/local/lib/android/sdk"name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout Cloud Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install System Dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        pip3 install --upgrade pip
+        pip3 install buildozer cython==0.29.33 virtualenv
+
+    - name: Auto-Accept Android SDK Licenses
+      run: |
         mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
         echo -e "244d2d25b6ac2816d4c629f74b127bc14e0547a0\n28e007fb4c10cb34a8e04de9ec0300c74bc54050" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
         echo -e "84831b9409646a918e30573bab4c9c91346d8abd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
